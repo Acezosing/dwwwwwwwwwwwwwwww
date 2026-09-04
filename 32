@@ -37,7 +37,7 @@ local Library = {
     RiskColor = Color3.fromRGB(255, 50, 50),
 
     Black = Color3.new(0, 0, 0);
-    Font = Enum.Font.Code,
+   Font = Enum.Font.GothamBold,
 
     OpenedFrames = {};
     DependencyBoxes = {};
@@ -993,7 +993,9 @@ do
         end))
 
         ColorPicker:Display();
-        ColorPicker.DisplayFrame = DisplayFrame        Options[Idx] = ColorPicker;
+        ColorPicker.DisplayFrame = DisplayFrame
+
+        Options[Idx] = ColorPicker;
 
         return self;
     end;
@@ -2946,7 +2948,7 @@ function Library:CreateWindow(...)
     if type(Config.MenuFadeTime) ~= 'number' then Config.MenuFadeTime = 0.2 end
 
     if typeof(Config.Position) ~= 'UDim2' then Config.Position = UDim2.fromOffset(175, 50) end
-    if typeof(Config.Size) ~= 'UDim2' then Config.Size = UDim2.fromOffset(650, 700) end -- Сделал окно больше
+    if typeof(Config.Size) ~= 'UDim2' then Config.Size = UDim2.fromOffset(550, 600) end
 
     if Config.Center then
         Config.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -3109,12 +3111,11 @@ function Library:CreateWindow(...)
             Parent = TabContainer;
         });
 
-        -- Теперь три секции
-        local Section1 = Library:Create('ScrollingFrame', {
+        local LeftSide = Library:Create('ScrollingFrame', {
             BackgroundTransparency = 1;
             BorderSizePixel = 0;
             Position = UDim2.new(0, 8 - 1, 0, 8 - 1);
-            Size = UDim2.new(0.333, -8, 0, 507 + 2); -- Треть ширины
+            Size = UDim2.new(0.5, -12 + 2, 0, 507 + 2);
             CanvasSize = UDim2.new(0, 0, 0, 0);
             BottomImage = '';
             TopImage = '';
@@ -3123,11 +3124,11 @@ function Library:CreateWindow(...)
             Parent = TabFrame;
         });
 
-        local Section2 = Library:Create('ScrollingFrame', {
+        local RightSide = Library:Create('ScrollingFrame', {
             BackgroundTransparency = 1;
             BorderSizePixel = 0;
-            Position = UDim2.new(0.333, 0, 0, 8 - 1);
-            Size = UDim2.new(0.333, -8, 0, 507 + 2);
+            Position = UDim2.new(0.5, 4 + 1, 0, 8 - 1);
+            Size = UDim2.new(0.5, -12 + 2, 0, 507 + 2);
             CanvasSize = UDim2.new(0, 0, 0, 0);
             BottomImage = '';
             TopImage = '';
@@ -3136,31 +3137,25 @@ function Library:CreateWindow(...)
             Parent = TabFrame;
         });
 
-        local Section3 = Library:Create('ScrollingFrame', {
-            BackgroundTransparency = 1;
-            BorderSizePixel = 0;
-            Position = UDim2.new(0.666, 0, 0, 8 - 1);
-            Size = UDim2.new(0.333, -8, 0, 507 + 2);
-            CanvasSize = UDim2.new(0, 0, 0, 0);
-            BottomImage = '';
-            TopImage = '';
-            ScrollBarThickness = 0;
-            ZIndex = 2;
-            Parent = TabFrame;
+        Library:Create('UIListLayout', {
+            Padding = UDim.new(0, 8);
+            FillDirection = Enum.FillDirection.Vertical;
+            SortOrder = Enum.SortOrder.LayoutOrder;
+            HorizontalAlignment = Enum.HorizontalAlignment.Center;
+            Parent = LeftSide;
         });
 
-        -- Создаем списки для каждой секции
-        for _, Section in next, { Section1, Section2, Section3 } do
-            Library:Create('UIListLayout', {
-                Padding = UDim.new(0, 8);
-                FillDirection = Enum.FillDirection.Vertical;
-                SortOrder = Enum.SortOrder.LayoutOrder;
-                HorizontalAlignment = Enum.HorizontalAlignment.Center;
-                Parent = Section;
-            });
+        Library:Create('UIListLayout', {
+            Padding = UDim.new(0, 8);
+            FillDirection = Enum.FillDirection.Vertical;
+            SortOrder = Enum.SortOrder.LayoutOrder;
+            HorizontalAlignment = Enum.HorizontalAlignment.Center;
+            Parent = RightSide;
+        });
 
-            Section:WaitForChild('UIListLayout'):GetPropertyChangedSignal('AbsoluteContentSize'):Connect(function()
-                Section.CanvasSize = UDim2.fromOffset(0, Section.UIListLayout.AbsoluteContentSize.Y);
+        for _, Side in next, { LeftSide, RightSide } do
+            Side:WaitForChild('UIListLayout'):GetPropertyChangedSignal('AbsoluteContentSize'):Connect(function()
+                Side.CanvasSize = UDim2.fromOffset(0, Side.UIListLayout.AbsoluteContentSize.Y);
             end);
         end;
 
@@ -3196,7 +3191,7 @@ function Library:CreateWindow(...)
                 BorderMode = Enum.BorderMode.Inset;
                 Size = UDim2.new(1, 0, 0, 507 + 2);
                 ZIndex = 2;
-                Parent = Info.Section == 1 and Section1 or Info.Section == 2 and Section2 or Section3;
+                Parent = Info.Side == 1 and LeftSide or RightSide;
             });
 
             Library:AddToRegistry(BoxOuter, {
@@ -3277,16 +3272,12 @@ function Library:CreateWindow(...)
             return Groupbox;
         end;
 
-        function Tab:AddSection1Groupbox(Name)
-            return Tab:AddGroupbox({ Section = 1; Name = Name; });
+        function Tab:AddLeftGroupbox(Name)
+            return Tab:AddGroupbox({ Side = 1; Name = Name; });
         end;
 
-        function Tab:AddSection2Groupbox(Name)
-            return Tab:AddGroupbox({ Section = 2; Name = Name; });
-        end;
-
-        function Tab:AddSection3Groupbox(Name)
-            return Tab:AddGroupbox({ Section = 3; Name = Name; });
+        function Tab:AddRightGroupbox(Name)
+            return Tab:AddGroupbox({ Side = 2; Name = Name; });
         end;
 
         function Tab:AddTabbox(Info)
@@ -3300,7 +3291,7 @@ function Library:CreateWindow(...)
                 BorderMode = Enum.BorderMode.Inset;
                 Size = UDim2.new(1, 0, 0, 0);
                 ZIndex = 2;
-                Parent = Info.Section == 1 and Section1 or Info.Section == 2 and Section2 or Section3;
+                Parent = Info.Side == 1 and LeftSide or RightSide;
             });
 
             Library:AddToRegistry(BoxOuter, {
@@ -3480,16 +3471,12 @@ function Library:CreateWindow(...)
             return Tabbox;
         end;
 
-        function Tab:AddSection1Tabbox(Name)
-            return Tab:AddTabbox({ Name = Name, Section = 1; });
+        function Tab:AddLeftTabbox(Name)
+            return Tab:AddTabbox({ Name = Name, Side = 1; });
         end;
 
-        function Tab:AddSection2Tabbox(Name)
-            return Tab:AddTabbox({ Name = Name, Section = 2; });
-        end;
-
-        function Tab:AddSection3Tabbox(Name)
-            return Tab:AddTabbox({ Name = Name, Section = 3; });
+        function Tab:AddRightTabbox(Name)
+            return Tab:AddTabbox({ Name = Name, Side = 2; });
         end;
 
         TabButton.InputBegan:Connect(function(Input)
